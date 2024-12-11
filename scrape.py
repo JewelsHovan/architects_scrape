@@ -43,31 +43,32 @@ async def main():
     try:
         parser = ArchitectParser(country=COUNTRY)
         
-        # First get total pages to show in progress bar
+        # Create a single session for all requests
         async with aiohttp.ClientSession() as session:
+            # Get total pages
             total_pages = await parser.get_total_pages(session)
             print(f"\nFound {total_pages} pages to scrape for {COUNTRY}")
-        
-        # Show progress during scraping
-        print("\nScraping architects data...")
-        architects = await tqdm.gather(
-            *[parser.fetch_page_data(session, page) for page in range(total_pages)],
-            desc="Scraping pages"
-        )
-        
-        # Flatten the list of lists into a single list
-        flattened_architects = [
-            architect 
-            for sublist in architects 
-            for architect in (sublist or [])  # Handle None values
-        ]
+            
+            # Show progress during scraping using the same session
+            print("\nScraping architects data...")
+            architects = await tqdm.gather(
+                *[parser.fetch_page_data(session, page) for page in range(total_pages)],
+                desc="Scraping pages"
+            )
+            
+            # Flatten the list of lists into a single list
+            flattened_architects = [
+                architect 
+                for sublist in architects 
+                for architect in (sublist or [])
+            ]
 
-        if flattened_architects:
-            output_file = save_to_json(flattened_architects, COUNTRY)
-            print(f"\nSuccessfully scraped {len(flattened_architects)} architects total.")
-            print(f"Data saved to: {output_file}")
-        else:
-            print("\nNo architects found.")
+            if flattened_architects:
+                output_file = save_to_json(flattened_architects, COUNTRY)
+                print(f"\nSuccessfully scraped {len(flattened_architects)} architects total.")
+                print(f"Data saved to: {output_file}")
+            else:
+                print("\nNo architects found.")
             
     except Exception as e:
         print(f"\nAn error occurred: {e}")
