@@ -7,7 +7,7 @@ from tqdm.asyncio import tqdm
 import aiohttp
 
 from parsers.architect_parser import ArchitectParser
-from config.search_config import COUNTRY
+from config.search_config import COUNTRY, CONCURRENT_REQUESTS
 
 def save_to_json(data: List[Dict], country: str) -> str:
     """
@@ -41,7 +41,7 @@ async def main():
     scrapes the data, and saves the results to a JSON file.
     """
     try:
-        parser = ArchitectParser(country=COUNTRY)
+        parser = ArchitectParser(country=COUNTRY, concurrent_requests=CONCURRENT_REQUESTS)
         
         # Create a single session for all requests
         async with aiohttp.ClientSession() as session:

@@ -5,17 +5,38 @@ from typing import List, Dict, Optional
 from config.request_config import create_request_payload, get_request_headers
 from config.search_config import DELAY
 
-
 class ArchitectParser:
+    """
+    A parser class for scraping architect data from the Architects Register website.
+
+    This class provides methods to fetch and parse data from the website,
+    handling pagination and individual architect entries.
+    """
     BASE_URL = "https://www.architects-register.org.uk"
     
     def __init__(self, country: str, concurrent_requests: int = 5):
+        """
+        Initializes the ArchitectParser with the specified country and concurrency settings.
+
+        Args:
+            country: The country to search for architects in.
+            concurrent_requests: The maximum number of concurrent requests allowed.
+        """
         self.country = country
         self.semaphore = asyncio.Semaphore(concurrent_requests)
         self.headers = get_request_headers()
         
     async def fetch_page_data(self, session: aiohttp.ClientSession, page: int) -> Optional[List[Dict]]:
-        """Fetches and parses a single page of architect data."""
+        """
+        Fetches and parses a single page of architect data.
+
+        Args:
+            session: The aiohttp ClientSession to use for the request.
+            page: The page number to fetch.
+
+        Returns:
+            A list of dictionaries containing the parsed architect data, or None if an error occurred.
+        """
         async with self.semaphore:
             url = f"{self.BASE_URL}/registrant/list"
             payload = create_request_payload(self.country, page)
@@ -36,7 +57,16 @@ class ArchitectParser:
                 await asyncio.sleep(DELAY)
     
     def _parse_page_content(self, content: str, page: int) -> List[Dict]:
-        """Parses the HTML content of a page."""
+        """
+        Parses the HTML content of a page.
+
+        Args:
+            content: The HTML content of the page.
+            page: The page number being parsed.
+
+        Returns:
+            A list of dictionaries containing the parsed architect data.
+        """
         soup = BeautifulSoup(content, 'html.parser')
         architects = []
         
@@ -48,7 +78,15 @@ class ArchitectParser:
         return architects
     
     def _parse_architect_entry(self, li: BeautifulSoup) -> Optional[Dict]:
-        """Parses a single architect entry from the HTML."""
+        """
+        Parses a single architect entry from the HTML.
+
+        Args:
+            li: The BeautifulSoup object representing a single architect entry.
+
+        Returns:
+            A dictionary containing the parsed architect data, or None if an error occurred.
+        """
         try:
             media_body = li.find('div', class_='media-body')
             if not media_body:
@@ -83,7 +121,15 @@ class ArchitectParser:
             return None
     
     async def get_total_pages(self, session: aiohttp.ClientSession) -> int:
-        """Gets the total number of pages available."""
+        """
+        Gets the total number of pages available.
+
+        Args:
+            session: The aiohttp ClientSession to use for the request.
+
+        Returns:
+            The total number of pages available.
+        """
         url = f"{self.BASE_URL}/registrant/list"
         payload = create_request_payload(self.country, 0)
         
@@ -98,7 +144,12 @@ class ArchitectParser:
                 return 0
     
     async def scrape_all(self) -> List[Dict]:
-        """Scrapes all architects data asynchronously."""
+        """
+        Scrapes all architects data asynchronously.
+
+        Returns:
+            A list of dictionaries containing the parsed architect data for all pages.
+        """
         async with aiohttp.ClientSession() as session:
             total_pages = await self.get_total_pages(session)
             print(f"Found {total_pages} pages to scrape for {self.country}")

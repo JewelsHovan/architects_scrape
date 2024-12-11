@@ -1,3 +1,17 @@
+"""
+This module provides functions to create the request payload and headers for the Architects Register API.
+
+The `create_request_payload` function generates a JSON payload used to filter and paginate search results 
+from the Architects Register. It takes the country and page number as input and constructs a dictionary 
+containing various filter criteria. The filters are applied to specific columns like RegistrationNumber, 
+ArchitectForename, ArchitectSurname, CompanyName, Address, Country, Website, Email, and Geography. 
+The payload also includes parameters for sorting, bounding, and pagination.
+
+The `get_request_headers` function returns a dictionary of headers required for making requests to the 
+Architects Register API. These headers specify the content type, accepted encoding, connection settings, 
+cookies, origin, referrer, and user agent. They are essential for ensuring that the API requests are 
+properly formatted and accepted by the server.
+"""
 from typing import Dict
 
 def create_request_payload(country: str, page: int) -> Dict:
